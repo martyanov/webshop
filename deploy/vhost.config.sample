@@ -1,0 +1,20 @@
+<VirtualHost *:80>
+        ServerAdmin admin@server.name
+        ServerName server.name
+
+        WSGIScriptAlias /app /path/to/app/app.wsgi
+        WSGIScriptAlias /app2 /path/to/app/app2.wsgi
+
+        Alias /app/static/ /path/to/app/static/
+        <Directory /path/to/app/static>
+                Order Allow,Deny
+                Allow from all
+        </Directory>
+
+        Alias /app2/static/ /path/to/app2/static/
+        <Directory /path/to/app2/static>
+                Order Allow,Deny
+                Allow from all
+        </Directory>
+
+</VirtualHost>
