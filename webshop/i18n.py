@@ -1,5 +1,5 @@
 # ePoint WebShop
-# Copyright (C) 2010 ePoint Systems Ltd
+# Copyright (C) 2010 - 2011 ePoint Systems Ltd
 # Author: Andrey V. Martyanov
 #
 # This program is free software: you can redistribute it and/or modify
@@ -11,8 +11,9 @@ import os
 import imp
 import re
 
+from flask import request
+
 from webshop.config import ConfigManager
-from webshop.cookie import get_cookie_value, set_cookie_value
 from webshop.http import get_language_from_request, get_accept_language
 from webshop.http import parse_accept_language_header
 from webshop import settings
@@ -83,7 +84,7 @@ class I18N(object):
         if lang_from_request in self._supported_languages:
             self._set_language_tag(lang_from_request)
             return lang_from_request
-        lang_from_cookie = get_cookie_value('wslang')
+        lang_from_cookie = request.cookies.get('wslang', '')
         if lang_from_cookie in self._supported_languages:
             return lang_from_cookie
         lang_from_browser = self._get_best_matched_language_tag()
@@ -98,7 +99,7 @@ class I18N(object):
         """
         if language_re.match(language_tag) and \
             language_tag in self._supported_languages:
-            set_cookie_value('wslang', language_tag)
+            response.set_cookie('wslang', language_tag)
 
     def get_current_language(self):
         return self._supported_languages[self.get_current_language_tag()]
