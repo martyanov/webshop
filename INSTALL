@@ -1,18 +1,18 @@
 WebShop installation
 
 Requirements:
-    python 2.5+
-    cherrypy
+    Python 2.5+
+    Flask
     python-gnupg
 
 Installation:
-    svn co https://www.epointsystem.org/svn/vending_machine/webshop
+    git clone git://github.com/martyanov/webshop.git
     python setup.py install
 
 Configuration:
     Webshop configuration manager tries to load settings from /etc/webshop.conf,
-    if it fails (for example file doesn't exist) the default settings defined in settings.py
-    (this file exists in every separate application) loaded instead.
+    if it fails (for example if file doesn't exist) the default settings defined in settings.py
+    (this file exists in each separate application) loaded instead.
 
     Each application has its unique set of options.
 

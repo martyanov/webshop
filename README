@@ -1,8 +1,0 @@
-WebShop overview
-================
-
-The aim of this project is the development and implementation of a RESTful API that can be used both in new e-commerce applications and integrated into existing ones.
-
-At the moment the project consists of two separate web applications based on CherrPy framework:
-1. paymentform - for paying invoices
-2. mailreceipt - for sending out emails with receipts
