@@ -10,15 +10,17 @@
 import os
 import imp
 import re
+import threading
 
-from flask import request
+from flask import request, current_app
 
-from webshop.config import ConfigManager
-from webshop.http import get_language_from_request, get_accept_language
-from webshop.http import parse_accept_language_header
 from webshop import settings
 
 language_re = re.compile(r'^[a-zA-Z]{2}$')
+
+
+def get_language_from_request():
+    return request.params.get('L', '')
 
 
 class I18N(object):
@@ -26,6 +28,14 @@ class I18N(object):
     def __init__(self, translations_dir):
         self._translations_dir = translations_dir
         self._supported_languages = {}
+        self._local = threading.local()
+        self._local.current_language_tag = None
+        
+        # Set the language cookie upon each request
+        self._register_set_language_cookie_func()
+    
+    def __del__(self):
+        del self._local
 
     def _get_available_language_tags(self):
         """
@@ -59,47 +69,35 @@ class I18N(object):
 
     def _get_best_matched_language_tag(self):
         """
-        Return the best matched language tag if available,
-        otherwise return None
-        """
-        accept_language = get_accept_language()
-        if accept_language is not None:
-            try:
-                language_tags = parse_accept_language_header(accept_language)
-                for language_tag in language_tags:
-                    if language_tag in self._supported_languages:
-                        return language_tag
-            except:
-                return None
-        return None
-
-    def get_current_language_tag(self):
-        """
         Return the current language tag for translation
-
-        WARNING: function modifies the language cookie value in some conditions,
-                 bad practice, needs refactoring
         """
         lang_from_request = get_language_from_request()
         if lang_from_request in self._supported_languages:
-            self._set_language_tag(lang_from_request)
-            return lang_from_request
+            self._local.current_language_tag = lang_from_request
+            return self._local.current_language_tag
         lang_from_cookie = request.cookies.get('wslang', '')
         if lang_from_cookie in self._supported_languages:
-            return lang_from_cookie
-        lang_from_browser = self._get_best_matched_language_tag()
+            self._local.current_language_tag = lang_from_cookie
+            return self._local.current_language_tag
+        lang_from_browser = request.accept_languages.best_match(
+            self._supported_languages)
         if lang_from_browser is not None:
-            self._set_language_tag(lang_from_browser)
-            return lang_from_browser
-        return settings.LANGUAGE
+            self._local.current_language_tag = lang_from_browser
+            return self._local.current_language_tag
+        self._local.current_language_tag = settings.LANGUAGE
+        return self._local.current_language_tag
 
-    def _set_language_tag(self, language_tag):
-        """
-        Set the language cookie
-        """
-        if language_re.match(language_tag) and \
-            language_tag in self._supported_languages:
-            response.set_cookie('wslang', language_tag)
+    def _register_set_language_cookie_func(self):
+        @current_app.after_request
+        def _set_language_cookie(response):
+            """
+            Set the language cookie
+            """
+            response.set_cookie('wslang', self._local.current_language_tag)
+            return response
 
     def get_current_language(self):
-        return self._supported_languages[self.get_current_language_tag()]
+        """
+        Return the current language module 
+        """
+        return self._supported_languages[self._get_current_language_tag()]
