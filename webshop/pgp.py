@@ -10,6 +10,7 @@
 # (at your option) any later version.
 
 import base64
+
 from webshop.gpg import GPG
 from webshop.protocol import extract_signature, strip_signature
 from webshop import settings

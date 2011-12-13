@@ -7,12 +7,13 @@
 # the Free Software Foundation, either version 2 of the License, or
 # (at your option) any later version.
 
-import logging
 import socket
 import smtplib
 from email.mime.text import MIMEText
 
 from mailreceipt.settings import SMTP_HOST, SMTP_PORT, SMTP_USERNAME, SMTP_PASSWORD, USE_SSL, USE_TLS
+
+from flask import current_app
 
 class MailerException(Exception):
     pass
@@ -66,7 +67,7 @@ class SMTPTransport(MailTransport):
         try:
             server = self._connect()
         except (smtplib.SMTPException, socket.error), err:
-            logging.error('Connection failure %s' % err)
+            current_app.logger.error('Connection failure %s' % err)
             if self.suppress_exceptions:
                 return
             else:
@@ -76,7 +77,7 @@ class SMTPTransport(MailTransport):
             server.sendmail(message.from_address, message.to_address,
                             message.as_string())
         except smtplib.SMTPException, err:
-            logging.error('Sending failure: %s' % err)
+            current_app.logger.error('Sending failure: %s' % err)
             if not self.suppress_exceptions:
                 raise MailerException('Sending failure %s' % err)
         finally:
