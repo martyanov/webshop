@@ -20,7 +20,7 @@ language_re = re.compile(r'^[a-zA-Z]{2}$')
 
 
 def get_language_from_request():
-    return request.params.get('L', '')
+    return request.args.get('L', '')
 
 
 class I18N(object):
@@ -88,7 +88,6 @@ class I18N(object):
         return self._local.current_language_tag
 
     def _register_set_language_cookie_func(self):
-        @current_app.after_request
         def _set_language_cookie(response):
             """
             Set the language cookie
@@ -100,4 +99,4 @@ class I18N(object):
         """
         Return the current language module 
         """
-        return self._supported_languages[self._get_current_language_tag()]
+        return self._supported_languages[self._get_best_matched_language_tag()]
